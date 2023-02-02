@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  web:
+    image: nginx
+    restart: always
+    volumes:
+     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+     - "8080:80"
+    environment:
+     - NGINX_HOST=foobar.com
+     - NGINX_PORT=80
+    network:
+      beelzebub:
+      backend:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=${ROOTPW}
+      - MARIADB_USER=${USERNAME}
+      - MARIADB_PASSWORD=${USERPASS}
+      - MARIADB_AUTO_UPGRADE=true
+    volumes:
+      - db_data:/var/lib/mysql
+    network:
+      backend:
+  mqtt:
+    image: eclipse-mosquitto
+    restart: always
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    network:
+      beelzebub:
+
+volumes:
+  mosquitto_data:
+  mosquitto_logs:
+  db_data:
+
+network:
+  beelzebub:
+    config:
+      - subnet: 10.0.1.0/28
+  backend:
+    config:
+      - subnet: 10.1.1.0/28
